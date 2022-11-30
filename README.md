@@ -10,7 +10,16 @@ A [Dune dashbord](https://dune.com/SebVentures/makerdao-mip65) present the colla
 
 A .env file need to be created at the root director based on `.env-default` then the Python srapper can be called by:
 
+You need to have Python 3 and the following packages (using pip install):
+ - scrapy
+ - python-dateutil
+ - web3
+ - python-dotenv
+
+To execute the scrapper and update the data:
+
 ```
 scrapy crawl etfspider
 ```
 
+Buying and sell order should be submitted manually on Etherscan for now.
