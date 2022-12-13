@@ -50,7 +50,7 @@ contract MIP65TrackerV2Test is Test {
         try tracker.grantRole(tracker.GUARDIAN_ROLE(), guardian2) {
             assertTrue(false);
         }
-        catch Error(string memory _err) { 
+        catch Error(string memory) { 
             assertTrue(true);
         }
     }
@@ -65,6 +65,7 @@ contract MIP65TrackerV2Test is Test {
         vm.prank(data1);
         tracker.update("ASSET_A", TODAY, 1 ether, 0.04 ether, 1.9 ether, 2.1 ether);
 
+        /* test that data are well set for ASSET_A */
         (int qty, int nav, int yield, int duration, int maturity) = tracker.details("ASSET_A");
         assertEq(qty, 0, "Qty of Asset A is wrong");
         assertEq(nav, 1 ether, "NAV of Asset A is wrong");
@@ -72,6 +73,37 @@ contract MIP65TrackerV2Test is Test {
         assertEq(duration, 1.9 ether, "Duration of Asset A is wrong");
         assertEq(maturity, 2.1 ether, "Maturity of Asset A is wrong");
 
+
+        vm.prank(data1);
+        tracker.update("ASSET_B", TODAY, 2 ether, 0.05 ether, 0.5 ether, 0.6 ether);
+
+        /* test that data are well set for ASSET_A */
+        (qty, nav, yield, duration, maturity) = tracker.details("ASSET_B");
+        assertEq(qty, 0, "Qty of Asset B is wrong");
+        assertEq(nav, 2 ether, "NAV of Asset B is wrong");
+        assertEq(yield, 0.05 ether, "Yield of Asset B is wrong");
+        assertEq(duration, 0.5 ether, "Duration of Asset B is wrong");
+        assertEq(maturity, 0.6 ether, "Maturity of Asset B is wrong");
+
+        /* test that data haven't changed for ASSET_A */
+        (qty, nav, yield, duration, maturity) = tracker.details("ASSET_A");
+        assertEq(qty, 0, "Qty of Asset A was changed");
+        assertEq(nav, 1 ether, "NAV of Asset A was changed");
+        assertEq(yield, 0.04 ether, "Yield of Asset A was changed");
+        assertEq(duration, 1.9 ether, "Duration of Asset A was changed");
+        assertEq(maturity, 2.1 ether, "Maturity of Asset A was changed");
+
+        // Even if we change in the past, data are changed for the details method
+        vm.prank(data1);
+        tracker.update("ASSET_A", TODAY - 50 days, 3 ether, 0.03 ether, 3.0 ether, 3.1 ether);
+
+        /* test that data haven't changed for ASSET_A */
+        (qty, nav, yield, duration, maturity) = tracker.details("ASSET_A");
+        assertEq(qty, 0, "Qty of Asset A was not changed");
+        assertEq(nav, 3 ether, "NAV of Asset A was not changed");
+        assertEq(yield, 0.03 ether, "Yield of Asset A was not changed");
+        assertEq(duration, 3.0 ether, "Duration of Asset A was not changed");
+        assertEq(maturity, 3.1 ether, "Maturity of Asset A was not changed");
     }
 
 
@@ -90,14 +122,27 @@ contract MIP65TrackerV2Test is Test {
 
         // Sending capital in
         tracker.addCapital(TODAY - 50 days, 1_000 ether);
-        assertEq(tracker.value(), 1_000 ether, "add capital isn't working");
-        assertEq(tracker.cash(), 1_000 ether, "add capital isn't working");
+        assertEq(tracker.value(), 1_000 ether, "add capital isn't working - value");
+        assertEq(tracker.cash(), 1_000 ether, "add capital isn't working - cash");
 
         // Sending capital in
         tracker.removeCapital(TODAY - 50 days, 50 ether);
-        assertEq(tracker.value(), 950 ether, "add capital isn't working");
-        assertEq(tracker.cash(), 950 ether, "add capital isn't working");
+        assertEq(tracker.value(), 950 ether, "remove capital isn't working - value");
+        assertEq(tracker.cash(), 950 ether, "remove capital isn't working - cash");
 
+        // Buy order, 1 unit at $10
+        tracker.buy("ASSET_A", TODAY - 50 days, 1 ether, 10 ether);
+        // Value ASSET_A at $9
+        tracker.update("ASSET_A", TODAY - 50 days, 9 ether, 0.09 ether, 9.0 ether, 9.1 ether);
+
+        assertEq(tracker.value(), 949 ether, "Buy asset isn't working - value");
+        assertEq(tracker.cash(), 940 ether, "Buy asset isn't working - cash");
+
+        // Value ASSET_A at $10
+        tracker.update("ASSET_A", TODAY - 50 days, 10 ether, 0.09 ether, 9.0 ether, 9.1 ether);
+        
+        assertEq(tracker.value(), 950 ether, "Buy asset isn't working - value");
+        assertEq(tracker.cash(), 940 ether, "Buy asset isn't working - cash");
 
 
     }
