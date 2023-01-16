@@ -11,8 +11,8 @@ load_dotenv()
 
 class EtfSpider(scrapy.Spider):
     name = 'etfspider'
-    start_urls = ['https://www.ishares.com/uk/individual/en/products/307243/ishares-treasury-bond-0-1yr-ucits-etf',
-        'https://www.ishares.com/uk/individual/en/products/287340/ishares-treasury-bond-1-3yr-ucits-etf']
+    start_urls = ['https://www.ishares.com/uk/individual/en/products/307243/ishares-treasury-bond-0-1yr-ucits-etf?siteEntryPassthrough=true',
+        'https://www.ishares.com/uk/individual/en/products/287340/ishares-treasury-bond-1-3yr-ucits-etf?siteEntryPassthrough=true']
 
     def parse(self, response):
         # legal blocker if any
